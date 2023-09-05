@@ -10,12 +10,13 @@ from langchain.prompts.chat import (
 from utils import LOG
 
 class TranslationChain:
-    def __init__(self, model_name: str = "gpt-3.5-turbo", verbose: bool = True):
+    def __init__(self, model_name: str = "gpt-3.5-turbo", verbose: bool = True, style: str = "formal"):
         
         # 翻译任务指令始终由 System 角色承担
+        # 添加了 style 参数，以便模型可以根据这个风格进行翻译
         template = (
-            """You are a translation expert, proficient in various languages. \n
-            Translates {source_language} to {target_language}."""
+            f"""You are a translation expert, proficient in {{source_language}} and {{target_language}}. \n
+            Translates text from {{source_language}} to {{target_language}} in the specified style {style}."""
         )
         system_message_prompt = SystemMessagePromptTemplate.from_template(template)
 
@@ -32,6 +33,7 @@ class TranslationChain:
         chat = ChatOpenAI(model_name=model_name, temperature=0, verbose=verbose)
 
         self.chain = LLMChain(llm=chat, prompt=chat_prompt_template, verbose=verbose)
+
 
     def run(self, text: str, source_language: str, target_language: str) -> (str, bool):
         result = ""

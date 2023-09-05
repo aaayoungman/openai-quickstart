@@ -8,13 +8,17 @@ from utils import ArgumentParser, LOG
 from translator import PDFTranslator, TranslationConfig
 
 
-def translation(input_file, source_language, target_language):
-    LOG.debug(f"[翻译任务]\n源文件: {input_file.name}\n源语言: {source_language}\n目标语言: {target_language}")
+def translation(input_file, source_language, target_language, style):
+    LOG.debug(f"[翻译任务]\n源文件: {input_file.name}\n源语言: {source_language}\n目标语言: {target_language}\n风格: {style}")
+
+    # 初始化 translator
+    initialize_translator(style)
 
     output_file_path = Translator.translate_pdf(
-        input_file.name, source_language=source_language, target_language=target_language)
+        input_file.name, source_language=source_language, target_language=target_language, style=style)
 
     return output_file_path
+
 
 def launch_gradio():
 
@@ -24,7 +28,8 @@ def launch_gradio():
         inputs=[
             gr.File(label="上传PDF文件"),
             gr.Textbox(label="源语言（默认：英文）", placeholder="English", value="English"),
-            gr.Textbox(label="目标语言（默认：中文）", placeholder="Chinese", value="Chinese")
+            gr.Textbox(label="目标语言（默认：中文）", placeholder="Chinese", value="Chinese"),
+            gr.Textbox(label="风格（默认：正式）", placeholder="formal", value="formal")  # 新增风格输入
         ],
         outputs=[
             gr.File(label="下载翻译文件")
@@ -34,7 +39,7 @@ def launch_gradio():
 
     iface.launch(share=True, server_name="0.0.0.0")
 
-def initialize_translator():
+def initialize_translator(style: str):
     # 解析命令行
     argument_parser = ArgumentParser()
     args = argument_parser.parse_arguments()
@@ -44,11 +49,11 @@ def initialize_translator():
     config.initialize(args)    
     # 实例化 PDFTranslator 类，并调用 translate_pdf() 方法
     global Translator
-    Translator = PDFTranslator(config.model_name)
+    Translator = PDFTranslator(config.model_name, style)
 
 
 if __name__ == "__main__":
     # 初始化 translator
-    initialize_translator()
+    # initialize_translator()
     # 启动 Gradio 服务
     launch_gradio()
